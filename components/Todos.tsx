@@ -7,6 +7,7 @@ import { Edit } from "lucide-react";
 import axios from 'axios';
 import { useRouter } from "next/navigation";
 import { Loader2 } from 'lucide-react'
+import clsx from "clsx";
 
 const Todos = () => {
     const router = useRouter();
@@ -15,9 +16,17 @@ const Todos = () => {
     const [editTitle, setEditTitle] = useState('');
     const [editId, setEditId] = useState('');
     const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(0);
     const handleGetTodos = async () => {
-        const res = await axios.get('/api/server-action/todos')
-        setTodos(res.data.data)
+        try {
+            setLoading(true)
+            const res = await axios.get('/api/server-action/todos')
+            setTodos(res.data.data)
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setLoading(false)
+        }
     }
     const onSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -38,8 +47,15 @@ const Todos = () => {
     }
 
     const handleDeleteTodo = async (id: string) => {
-        const res = await axios.delete('/api/server-action/todos', { data: { id } })
-        setTodos(previous => previous.filter((todo) => todo.id !== res.data.id))
+        try {
+            setLoading(true)
+            const res = await axios.delete('/api/server-action/todos', { data: { id } })
+            setTodos(previous => previous.filter((todo) => todo.id !== res.data.id))
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setLoading(false)
+        }
     }
 
     const editClick = (id: string, title: string) => {
@@ -67,11 +83,34 @@ const Todos = () => {
     useEffect(() => {
         handleGetTodos()
     }, [])
+    const splices = [...todos];
+    const pages = [];
+    for (let i = 1; i <= Math.ceil(splices.length / 5); i++) {
+        pages.push(i);
+    }
+    const splice = splices.slice((page) * 5, (page + 1) * 5);
+    
     return (
         <>
-            <div className="flex flex-col gap-y-2 mb-3">
-                {todos?.length > 0 && (
-                    todos.map((todo) => {
+            <div className="flex w-full mt-3">
+                <button onClick={handleGetTodos}><Loader2 className={clsx("h-6 w-6", loading && 'animate-spin')} /></button>
+                <button className="ml-auto bg-red-400 p-3 text-white rounded-md" onClick={handleSignOut}>Sign out</button>
+            </div>
+            <form onSubmit={onSubmit}>
+                <div className="flex flex-col flex-1">
+                    <label htmlFor="todo" className="text-3xl">Todo</label>
+                    <Input id="todo" name="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                </div>
+                <div className="w-full flex justify-center items-center">
+                    <button className="bg-indigo-300 mt-5 rounded-md text-white text-xl w-1/5 m-auto flex p-3 justify-center" disabled={loading}>
+                        <span>Send</span>
+                        {loading && (<Loader2 className="ml-1 h-6 w-6 animate-spin" />)}
+                    </button>
+                </div>
+            </form>
+            <div className="flex flex-col gap-y-2 mt-5">
+                {splice?.length > 0 && (
+                    splice.map((todo) => {
                         return (
                             <div className="flex p-3 bg-rose-500 rounded-md w-full relative" key={todo.id}>
                                 {
@@ -99,21 +138,15 @@ const Todos = () => {
                     })
                 )}
             </div>
-            <form onSubmit={onSubmit}>
-                <div className="flex flex-col flex-1">
-                    <label htmlFor="todo" className="text-3xl">Todo</label>
-                    <Input id="todo" name="title" value={title} onChange={(e) => setTitle(e.target.value)} />
-                </div>
-                <div className="w-full flex justify-center items-center">
-                    <button className="bg-indigo-300 mt-5 rounded-md text-white text-xl w-1/5 m-auto flex p-3 justify-center" disabled={loading}>
-                        <span>Send</span>
-                        {loading && (<Loader2 className="ml-1 h-6 w-6 animate-spin" />)}
-                    </button>
-                </div>
-            </form>
-            <div className="flex w-full mt-3">
-                <button className="ml-auto bg-red-400 p-3 text-white rounded-md" onClick={handleSignOut}>Sign out</button>
-            </div>
+            {
+                pages.length >= 1 && (
+                    <ul className="flex gap-x-2 mt-3 justify-center">
+                        {pages.map((item) => (
+                            <li key={item} className="bg-slate-300 p-1 rounded-md text-white cursor-pointer" onClick={() => setPage(item-1)}>{item}</li>
+                        ))}
+                    </ul>
+                )
+            }
         </>
     )
 }

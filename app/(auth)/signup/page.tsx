@@ -3,7 +3,6 @@
 import * as z from 'zod'
 import { useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import axios from 'axios';
 import Link from 'next/link';
 
@@ -20,7 +19,6 @@ const SignUp = () => {
     const {
         handleSubmit,
         formState,
-        reset,
         register
     } = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -32,7 +30,8 @@ const SignUp = () => {
     })
     
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        await axios.post('/api/sign-up', values)
+        const res = await axios.post('/api/sign-up', values);
+        console.log(res)
     }
     return (
         <div className='flex flex-col justify-center w-2/3 md:w-1/3 bg-slate-300/30 py-5 px-4 rounded-md shadow-md '>
