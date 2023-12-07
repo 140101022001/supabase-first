@@ -6,6 +6,7 @@ import Input from "./Input";
 import { Edit } from "lucide-react";
 import axios from 'axios';
 import { useRouter } from "next/navigation";
+import { Loader2 } from 'lucide-react'
 
 const Todos = () => {
     const router = useRouter();
@@ -13,6 +14,7 @@ const Todos = () => {
     const [title, setTitle] = useState('');
     const [editTitle, setEditTitle] = useState('');
     const [editId, setEditId] = useState('');
+    const [loading, setLoading] = useState(false);
     const handleGetTodos = async () => {
         const res = await axios.get('/api/server-action/todos')
         setTodos(res.data.data)
@@ -20,10 +22,17 @@ const Todos = () => {
     const onSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (title) {
-            const res= await axios.post('/api/server-action/todos', { title })
-            if (res.data) {
-                setTodos(previous => [...previous, res.data[0]])
-                setTitle('');
+            try {
+                setLoading(true)
+                const res = await axios.post('/api/server-action/todos', { title })
+                if (res.data) {
+                    setTodos(previous => [...previous, res.data[0]])
+                    setTitle('');
+                }
+            } catch (err) {
+                console.log(err);
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -96,7 +105,10 @@ const Todos = () => {
                     <Input id="todo" name="title" value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
                 <div className="w-full flex justify-center items-center">
-                    <button className="bg-indigo-300 mt-5 rounded-md text-white text-xl w-1/5 m-auto">Send</button>
+                    <button className="bg-indigo-300 mt-5 rounded-md text-white text-xl w-1/5 m-auto flex p-3 justify-center" disabled={loading}>
+                        <span>Send</span>
+                        {loading && (<Loader2 className="ml-1 h-6 w-6 animate-spin" />)}
+                    </button>
                 </div>
             </form>
             <div className="flex w-full mt-3">
