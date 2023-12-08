@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr"
+import { Github } from "lucide-react"
 
 const OAuth = () => {
 
@@ -14,9 +15,30 @@ const OAuth = () => {
             }
         })
     }
+
+    const loginWithGoogle = () => {
+        supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${location.origin}/api/server-action/callback`
+            }
+        })
+    }
     return (
-        <button className="mt-3 w-full bg-slate-500 py-3 px-2 rounded-md text-white"
-            onClick={loginWithGithub}>Login with GitHub</button>
+        <>
+            <button className="mt-3 w-full bg-slate-400 py-3 px-2 rounded-md text-white"
+                onClick={loginWithGithub}>
+                <div className="flex w-full justify-center items-center">
+                    <span>Login with GitHub</span>
+                </div>
+            </button>
+            <button className="mt-3 w-full bg-slate-500 py-3 px-2 rounded-md text-white"
+                onClick={loginWithGoogle}>
+                    <div className="flex w-full justify-center items-center">
+                        <span>Login with Google</span>
+                    </div>
+            </button>
+        </>
     )
 }
 
